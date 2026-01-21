@@ -18,6 +18,7 @@ type Config struct {
 	LastFailed bool   // Filter repos where last delivery failed
 	Head       int    // Limit to N most recent deliveries per repo (0 = no limit)
 	SortBy     string // Sort field and order: "field:order" (e.g., "repository:asc", "timestamp:desc")
+	Verbose    bool   // Enable verbose output
 }
 
 // Validate checks that the configuration is valid

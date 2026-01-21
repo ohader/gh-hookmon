@@ -71,6 +71,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&cfg.LastFailed, "last-failed", false, "Filter repos where the most recent delivery failed")
 	rootCmd.Flags().IntVar(&cfg.Head, "head", 0, "Show only N most recent deliveries per repository (default: all)")
 	rootCmd.Flags().StringVar(&cfg.SortBy, "sort", "", "Sort by field (repository, timestamp, code, event) with optional order (:asc or :desc)")
+	rootCmd.Flags().BoolVarP(&cfg.Verbose, "verbose", "v", false, "Enable verbose output")
 }
 
 func Execute() error {
@@ -177,7 +178,9 @@ func run(cmd *cobra.Command, args []string) error {
 }
 
 func processOrganization(client *github.Client, org string) ([]github.Delivery, error) {
-	fmt.Fprintf(os.Stderr, "Fetching repositories for organization: %s\n", org)
+	if cfg.Verbose {
+		fmt.Fprintf(os.Stderr, "Fetching repositories for organization: %s\n", org)
+	}
 
 	// Get all repositories in the organization
 	repos, err := client.ListOrgRepos(org)
@@ -185,7 +188,9 @@ func processOrganization(client *github.Client, org string) ([]github.Delivery, 
 		return nil, fmt.Errorf("failed to list organization repositories: %w", err)
 	}
 
-	fmt.Fprintf(os.Stderr, "Found %d repositories\n", len(repos))
+	if cfg.Verbose {
+		fmt.Fprintf(os.Stderr, "Found %d repositories\n", len(repos))
+	}
 
 	if len(repos) == 0 {
 		return []github.Delivery{}, nil
@@ -212,7 +217,9 @@ func processOrganization(client *github.Client, org string) ([]github.Delivery, 
 	for w := 0; w < numWorkers; w++ {
 		go func() {
 			for repo := range jobs {
-				fmt.Fprintf(os.Stderr, "Processing repository: %s\n", repo)
+				if cfg.Verbose {
+					fmt.Fprintf(os.Stderr, "Processing repository: %s\n", repo)
+				}
 				repoDeliveries, err := processRepository(client, repo)
 				results <- repoResult{
 					repo:       repo,
@@ -234,7 +241,9 @@ func processOrganization(client *github.Client, org string) ([]github.Delivery, 
 	for i := 0; i < len(repos); i++ {
 		result := <-results
 		if result.err != nil {
-			fmt.Fprintf(os.Stderr, "Warning: failed to process repository %s: %v\n", result.repo, result.err)
+			if cfg.Verbose {
+				fmt.Fprintf(os.Stderr, "Warning: failed to process repository %s: %v\n", result.repo, result.err)
+			}
 			continue
 		}
 		allDeliveries = append(allDeliveries, result.deliveries...)
@@ -265,7 +274,9 @@ func processRepository(client *github.Client, repo string) ([]github.Delivery, e
 
 		deliveries, err := client.ListRepoHookDeliveries(repo, hook.ID, 100)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Warning: failed to list deliveries for hook %d: %v\n", hook.ID, err)
+			if cfg.Verbose {
+				fmt.Fprintf(os.Stderr, "Warning: failed to list deliveries for hook %d: %v\n", hook.ID, err)
+			}
 			continue
 		}
 
@@ -332,7 +343,9 @@ func fetchDeliveryDetails(client *github.Client, deliveries []github.Delivery, i
 		case detailed := <-results:
 			detailedDeliveries = append(detailedDeliveries, detailed)
 		case err := <-errors:
-			fmt.Fprintf(os.Stderr, "Warning: %v\n", err)
+			if cfg.Verbose {
+				fmt.Fprintf(os.Stderr, "Warning: %v\n", err)
+			}
 		}
 	}
 

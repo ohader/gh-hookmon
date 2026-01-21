@@ -110,6 +110,7 @@ Flags:
       --since string    Start date YYYY-MM-DD (00:00:00)
       --sort string     Sort by field (repository, timestamp, code, event) with optional order (:asc or :desc)
       --until string    End date YYYY-MM-DD (23:59:59)
+  -v, --verbose         Enable verbose output
 ```
 
 ### Basic Commands
