@@ -14,6 +14,8 @@ A GitHub CLI extension for monitoring webhook delivery history across organizati
 - Color-coded status display with enhanced error messages
 - Automatic pagination for large result sets
 
+![GH CLI in Terminal](docs/terminal.png)
+
 ## Installation
 
 ### As User of GitHub CLI
