@@ -12,7 +12,7 @@ import (
 // FormatTable outputs deliveries as an ASCII table
 func FormatTable(deliveries []github.Delivery, w io.Writer) {
 	if len(deliveries) == 0 {
-		fmt.Fprintln(w, "No webhook deliveries found")
+		fmt.Fprintln(w, "No matching webhook deliveries found")
 		return
 	}
 
