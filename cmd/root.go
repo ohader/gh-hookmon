@@ -34,6 +34,9 @@ Examples:
   # Show only failed deliveries
   gh hookmon --org=myorg --failed
 
+  # Show only repos where the last delivery failed
+  gh hookmon --org=myorg --last-failed
+
   # Show only the 5 most recent deliveries per repository
   gh hookmon --org=myorg --head=5
 
@@ -65,6 +68,7 @@ func init() {
 	rootCmd.Flags().String("until", "", "End date YYYY-MM-DD (23:59:59)")
 	rootCmd.Flags().BoolVar(&cfg.JSONOutput, "json", false, "Output in JSON format")
 	rootCmd.Flags().BoolVar(&cfg.Failed, "failed", false, "Filter for failed webhook deliveries (4xx, 5xx, or no response)")
+	rootCmd.Flags().BoolVar(&cfg.LastFailed, "last-failed", false, "Filter repos where the most recent delivery failed")
 	rootCmd.Flags().IntVar(&cfg.Head, "head", 0, "Show only N most recent deliveries per repository (default: all)")
 	rootCmd.Flags().StringVar(&cfg.SortBy, "sort", "", "Sort by field (repository, timestamp, code, event) with optional order (:asc or :desc)")
 }
@@ -118,6 +122,11 @@ func run(cmd *cobra.Command, args []string) error {
 		if filter.InRange(d.DeliveredAt, cfg.Since, cfg.Until) {
 			filteredDeliveries = append(filteredDeliveries, d)
 		}
+	}
+
+	// Apply --last-failed filter: only include repos where most recent delivery failed
+	if cfg.LastFailed {
+		filteredDeliveries = filterByLastFailed(filteredDeliveries)
 	}
 
 	// Apply status filter if --failed is specified
@@ -355,6 +364,44 @@ func applyHeadLimit(deliveries []github.Delivery, limit int, sortField string, a
 
 	// Re-sort the combined results to maintain global sort order
 	github.ApplySort(result, sortField, ascending)
+
+	return result
+}
+
+// filterByLastFailed returns only deliveries from repositories where
+// the most recent delivery was a failure.
+func filterByLastFailed(deliveries []github.Delivery) []github.Delivery {
+	if len(deliveries) == 0 {
+		return deliveries
+	}
+
+	// Group deliveries by repository
+	repoGroups := make(map[string][]github.Delivery)
+	for _, d := range deliveries {
+		repoGroups[d.Repository] = append(repoGroups[d.Repository], d)
+	}
+
+	// Find repos where the last delivery failed
+	reposWithLastFailed := make(map[string]bool)
+	for repo, group := range repoGroups {
+		var mostRecent *github.Delivery
+		for i := range group {
+			if mostRecent == nil || group[i].DeliveredAt.After(mostRecent.DeliveredAt) {
+				mostRecent = &group[i]
+			}
+		}
+		if mostRecent != nil && filter.IsFailed(mostRecent.StatusCode) {
+			reposWithLastFailed[repo] = true
+		}
+	}
+
+	// Return all deliveries from repos where last delivery failed
+	result := make([]github.Delivery, 0, len(deliveries))
+	for _, d := range deliveries {
+		if reposWithLastFailed[d.Repository] {
+			result = append(result, d)
+		}
+	}
 
 	return result
 }

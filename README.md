@@ -104,6 +104,7 @@ Flags:
       --head int        Show only N most recent deliveries per repository (default: all)
   -h, --help            help for gh-hookmon
       --json            Output in JSON format
+      --last-failed     Filter repos where the most recent delivery failed
       --org string      Process all repos in organization (required if --repo not set)
       --repo string     Process specific repository OWNER/REPO (required if --org not set)
       --since string    Start date YYYY-MM-DD (00:00:00)

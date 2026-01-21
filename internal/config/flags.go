@@ -15,6 +15,7 @@ type Config struct {
 	Until      *time.Time
 	JSONOutput bool
 	Failed     bool   // Filter for failed deliveries only
+	LastFailed bool   // Filter repos where last delivery failed
 	Head       int    // Limit to N most recent deliveries per repo (0 = no limit)
 	SortBy     string // Sort field and order: "field:order" (e.g., "repository:asc", "timestamp:desc")
 }
@@ -47,6 +48,11 @@ func (c *Config) Validate() error {
 	// Validate head flag
 	if c.Head < 0 {
 		return fmt.Errorf("--head must be a non-negative integer")
+	}
+
+	// Validate --failed and --last-failed are mutually exclusive
+	if c.Failed && c.LastFailed {
+		return fmt.Errorf("cannot specify both --failed and --last-failed")
 	}
 
 	// Validate sort flag
