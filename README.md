@@ -51,6 +51,66 @@ gh auth login
 
 ## Usage
 
+```bash
+gh hookmon --help
+```
+
+```
+Retrieve and display webhook delivery history from GitHub organizations or repositories.
+
+Examples:
+  # List all webhook deliveries for an organization
+  gh hookmon --org=myorg
+
+  # List webhook deliveries for a specific repository
+  gh hookmon --repo=owner/repo
+
+  # Filter by URL pattern
+  gh hookmon --org=myorg --filter="slack.com"
+
+  # Filter by date range
+  gh hookmon --org=myorg --since=2026-01-01 --until=2026-01-31
+
+  # Show only failed deliveries
+  gh hookmon --org=myorg --failed
+
+  # Show only the 5 most recent deliveries per repository
+  gh hookmon --org=myorg --head=5
+
+  # Combine filters: failed deliveries from last week, top 3 per repo
+  gh hookmon --org=myorg --failed --since=2026-01-13 --head=3
+
+  # Sort by repository name alphabetically
+  gh hookmon --org=myorg --sort=repository
+
+  # Sort by status code ascending (success codes first)
+  gh hookmon --org=myorg --sort=code:asc
+
+  # Sort by event type descending
+  gh hookmon --org=myorg --sort=event:desc
+
+  # Combine with filters and sorting
+  gh hookmon --org=myorg --failed --sort=repository:asc --head=5
+
+  # Output as JSON
+  gh hookmon --repo=owner/repo --json
+
+Usage:
+  gh-hookmon [flags]
+
+Flags:
+      --failed          Filter for failed webhook deliveries (4xx, 5xx, or no response)
+      --filter string   Filter webhook URLs by pattern
+      --head int        Show only N most recent deliveries per repository (default: all)
+  -h, --help            help for gh-hookmon
+      --json            Output in JSON format
+      --org string      Process all repos in organization (required if --repo not set)
+      --repo string     Process specific repository OWNER/REPO (required if --org not set)
+      --since string    Start date YYYY-MM-DD (00:00:00)
+      --sort string     Sort by field (repository, timestamp, code, event) with optional order (:asc or :desc)
+      --until string    End date YYYY-MM-DD (23:59:59)
+```
+
 ### Basic Commands
 
 List all webhook deliveries for an organization:
