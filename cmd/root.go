@@ -183,7 +183,7 @@ func processOrganization(client *github.Client, org string) ([]github.Delivery, 
 	}
 
 	// Use concurrent workers to speed up repository processing
-	const maxConcurrent = 5
+	const maxConcurrent = 10
 	numWorkers := maxConcurrent
 	if len(repos) < numWorkers {
 		numWorkers = len(repos)
